@@ -1,0 +1,8 @@
+{
+  "name": "herdr-agent-sessions",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Herdr plugin: list on-disk agent sessions and resume one in a new pane.",
+  "type": "commonjs",
+  "main": "panel.js"
+}

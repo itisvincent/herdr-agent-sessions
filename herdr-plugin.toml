@@ -1,0 +1,53 @@
+id = "example.agent-sessions"
+name = "Agent Sessions"
+version = "0.1.2"
+min_herdr_version = "0.7.0"
+description = "List on-disk agent sessions and resume them in the matching Herdr workspace."
+platforms = ["linux", "macos", "windows"]
+
+# ROOT CAUSE (Windows panes):
+# Herdr sets the pane cwd / HERDR_PLUGIN_ROOT to a Win32 verbatim path:
+#   \\?\D:\path\to\plugin
+# `command = ["node", "panel.js"]` then dies before JS runs:
+#   Error: EISDIR: illegal operation on a directory, lstat 'D:'
+# Node realpathSync() of a *relative* entry script against that cwd.
+# Absolute `node D:/.../panel.js` works but is not publishable.
+# `%HERDR_PLUGIN_ROOT%` is NOT expanded (Herdr argv is not a shell).
+# `boot.js` cannot save you: Node never executes it if the entry is relative.
+# Actions/startup are a different launcher and may work with relative node
+# scripts; panes must not. run.ps1 strips \\?\ and execs node with an
+# absolute path. Herdr requires unique pane ids even across platforms.
+
+[[panes]]
+id = "panel"
+title = "Agent Sessions"
+placement = "split"
+platforms = ["linux", "macos"]
+command = ["node", "panel.js"]
+
+[[panes]]
+id = "panel-windows"
+title = "Agent Sessions"
+placement = "split"
+platforms = ["windows"]
+command = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "run.ps1", "panel.js"]
+
+[[startup]]
+platforms = ["linux", "macos"]
+command = ["node", "apply-agent-view.js"]
+
+[[startup]]
+platforms = ["windows"]
+command = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "run.ps1", "apply-agent-view.js"]
+
+[[actions]]
+id = "open"
+title = "Open agent sessions"
+contexts = ["workspace"]
+command = ["node", "open.js"]
+
+[[actions]]
+id = "agents-current-space"
+title = "Agents panel: current workspace only"
+contexts = ["workspace"]
+command = ["node", "apply-agent-view.js"]
